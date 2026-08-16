@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#176b2c">
+<title>School Arts Fest</title>
+<style>
+:root{--p:#176b2c;--p2:#0f5120;--red:#c62828;--blue:#1565c0;--gold:#b77900;--bg:#f3f5f7;--card:#fff;--text:#18202a;--muted:#667085}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{border:0;border-radius:9px;padding:12px 14px;background:var(--p);color:#fff;cursor:pointer;margin:3px;min-height:44px;touch-action:manipulation}
+button.red{background:var(--red)} button.blue{background:var(--blue)} button.gold{background:var(--gold)} button.gray{background:#475467} button.light{background:#e9eef0;color:#18202a}
+input,select,textarea{width:100%;padding:12px;min-height:46px;border:1px solid #ccd2d8;border-radius:8px;background:#fff;color:#18202a;font-size:16px;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{outline:3px solid #176b2c33;border-color:var(--p)}
+label{display:block;font-weight:bold;font-size:13px;margin:9px 0 5px}
+.top{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;padding:12px;position:sticky;top:0;z-index:20}
+.brand{max-width:1200px;margin:auto;display:flex;align-items:center;gap:12px}
+.logo{width:50px;height:50px;border-radius:12px;background:#ffffff22;display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;flex-shrink:0}
+.logo img{width:100%;height:100%;object-fit:cover}
+.brand h1{margin:0;font-size:20px}.brand small{opacity:.85}
+.wrap{max-width:1200px;margin:auto;padding:14px}
+.login{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(135deg,#e0f4e5,#f4f6f7)}
+.loginbox{width:100%;max-width:480px;background:#fff;padding:24px;border-radius:20px;box-shadow:0 15px 50px #0002}
+.center{text-align:center}.hidden{display:none!important}.muted{color:var(--muted)}
+.code-input{font-size:24px;letter-spacing:5px;text-align:center}
+.nav{display:flex;gap:6px;overflow:auto;padding:5px 0 12px;position:sticky;top:74px;background:var(--bg);z-index:10}
+.nav button{white-space:nowrap;background:#e3e8eb;color:#25313d}.nav button.active{background:var(--p);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{background:var(--card);border-radius:15px;padding:17px;margin-bottom:14px;box-shadow:0 4px 18px #00000012}
+.stat{font-size:28px;font-weight:bold}.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#eef2f4;font-size:12px}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:650px}.table th,.table td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left}
+.toast{position:fixed;right:15px;bottom:15px;background:#18202a;color:#fff;padding:12px 16px;border-radius:10px;z-index:200;max-width:90%}
+.info{padding:11px 12px;background:#f1f7f2;border-radius:9px;font-size:13px;margin-top:10px}
+.danger{background:#fff0f0;border:1px solid #ffd2d2}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row button{flex:0 0 auto}
+.small{font-size:12px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.brand h1{font-size:17px}.nav{top:70px}.loginbox{padding:20px}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login">
+  <div class="loginbox">
+    <div class="center">
+      <div id="loginLogo" class="logo" style="margin:auto">🏆</div>
+      <h1 id="loginSchool">School Arts Fest</h1>
+      <p class="muted">Competition Management System</p>
+    </div>
+
+    <label for="loginRole">Login Type</label>
+    <select id="loginRole" onchange="loginFields()">
+      <option value="official">Official Team</option>
+      <option value="leader">Group Leader</option>
+      <option value="participant">Participant</option>
+    </select>
+
+    <div id="loginFields"></div>
+    <button id="loginButton" style="width:100%;margin-top:12px" onclick="login()">Login / Open</button>
+    <div id="loginHelp" class="muted small" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+<header class="top">
+  <div class="brand">
+    <div id="brandLogo" class="logo">🏆</div>
+    <div><h1 id="brandSchool">School Arts Fest</h1><small id="brandEvent">Annual Arts Fest</small></div>
+    <div style="margin-left:auto"><button class="light" onclick="logout()">Logout</button></div>
+  </div>
+</header>
+<div class="wrap">
+  <div id="nav" class="nav"></div>
+  <div id="content"></div>
+</div>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+"use strict";
+
+const KEY="SCHOOL_ARTS_FEST_COMPLETE_V1";
+const defaultDB={
+ settings:{
+   schoolName:"School Arts Fest",eventName:"Annual Arts Fest",logo:"",
+   officialPin:"1234",categories:["Sub Junior","Junior","Senior"],
+   genders:["Girls","Boys","Both"],publish:false,
+   points:{1:5,2:3,3:1}
+ },
+ groups:[
+   {id:"g1",name:"Group 1",password:"12345"},
+   {id:"g2",name:"Group 2",password:"123456"}
+ ],
+ students:[],
+ competitions:[],
+ registrations:[],
+ marks:[],
+ results:[]
+};
+let db=load(),session=null,currentPage="dashboard";
+
+function $(id){return document.getElementById(id)}
+function uid(){return "id_"+Math.random().toString(36).slice(2)+Date.now()}
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function load(){
+  try{
+    const x=localStorage.getItem(KEY);
+    if(!x)return clone(defaultDB);
+    return normalize(JSON.parse(x));
+  }catch(e){return clone(defaultDB)}
+}
+function normalize(x){
+  const d=clone(defaultDB);
+  if(!x||typeof x!=="object")return d;
+  d.settings={...d.settings,...(x.settings||{})};
+  ["groups","students","competitions","registrations","marks","results"].forEach(k=>{
+    if(Array.isArray(x[k]))d[k]=x[k];
+  });
+  if(!d.settings.officialPin)d.settings.officialPin="1234";
+  return d;
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.remove("hidden");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.add("hidden"),2200)}
+function brand(){
+ $("brandSchool").textContent=db.settings.schoolName;
+ $("brandEvent").textContent=db.settings.eventName;
+ $("loginSchool").textContent=db.settings.schoolName;
+ if(db.settings.logo){
+   $("brandLogo").innerHTML=`<img src="${esc(db.settings.logo)}">`;
+   $("loginLogo").innerHTML=`<img src="${esc(db.settings.logo)}">`;
+ }
+}
+
+function loginFields(){
+ const role=$("loginRole").value,f=$("loginFields"),h=$("loginHelp");
+ if(role==="official"){
+   f.innerHTML=`
+   <label for="loginPin">Official Team Code / PIN</label>
+   <input id="loginPin" class="code-input" type="password" inputmode="numeric" autocomplete="current-password" placeholder="ENTER CODE" autofocus>
+   <div class="info">Official Team: full administration access. Default first-time code: <b>1234</b>. You can change it after login.</div>`;
+   h.textContent="Enter the Official Team code.";
+ }else if(role==="leader"){
+   f.innerHTML=`
+   <label for="loginGroup">Select Group</label>
+   <select id="loginGroup">${db.groups.map(g=>`<option value="${esc(g.id)}">${esc(g.name)}</option>`).join("")}</select>
+   <label for="loginPin">Group Code / PIN</label>
+   <input id="loginPin" class="code-input" type="password" inputmode="numeric" autocomplete="current-password" placeholder="ENTER GROUP CODE" autofocus>
+   <div class="info">Only the selected Group Leader can edit that group's information.</div>`;
+   h.textContent="Every group can have its own changeable code.";
+ }else{
+   f.innerHTML=`<div class="info" style="margin-top:15px"><b>Participant Access</b><br>No code. No Student ID. No password. Anyone can press Login / Open and enter directly.</div>`;
+   h.textContent="Participant access is completely open.";
+ }
+ setTimeout(()=>{const x=$("loginPin");if(x)x.focus()},50);
+}
+
+function login(){
+ const role=$("loginRole").value;
+ if(role==="official"){
+   const pin=($("loginPin")?.value||"").trim();
+   if(pin!==String(db.settings.officialPin)){toast("Wrong Official Team code");$("loginPin")?.focus();return}
+   session={role:"official"};
+ }else if(role==="leader"){
+   const gid=$("loginGroup")?.value||"",pass=($("loginPin")?.value||"").trim();
+   const g=db.groups.find(x=>x.id===gid);
+   if(!g||String(g.password)!==pass){toast("Wrong Group code");$("loginPin")?.focus();return}
+   session={role:"leader",groupId:gid};
+ }else session={role:"participant"};
+ $("loginScreen").classList.add("hidden");$("app").classList.remove("hidden");currentPage="dashboard";renderApp();
+}
+function logout(){session=null;$("app").classList.add("hidden");$("loginScreen").classList.remove("hidden");loginFields()}
+
+function navItems(){
+ if(session.role==="official")return [
+  ["dashboard","Dashboard"],["students","Students"],["competitions","Competitions"],
+  ["registrations","Registrations"],["marks","Marks / Results"],["groups","Groups & Codes"],
+  ["settings","Settings"]
+ ];
+ if(session.role==="leader")return [["dashboard","Dashboard"],["students","Students"],["registrations","Registrations"],["marks","Marks"],["mycode","My Group Code"]];
+ return [["dashboard","Dashboard"],["competitions","Competitions"],["results","Published Results"]];
+}
+function renderApp(){
+ const nav=$("nav");
+ nav.innerHTML=navItems().map(([id,label])=>`<button class="${currentPage===id?"active":""}" onclick="go('${id}')">${label}</button>`).join("");
+ renderPage();
+}
+function go(p){currentPage=p;renderApp()}
+function renderPage(){
+ const c=$("content");
+ if(currentPage==="dashboard")return pageDashboard(c);
+ if(currentPage==="students")return pageStudents(c);
+ if(currentPage==="competitions")return pageCompetitions(c);
+ if(currentPage==="registrations")return pageRegistrations(c);
+ if(currentPage==="marks")return pageMarks(c);
+ if(currentPage==="groups")return pageGroups(c);
+ if(currentPage==="settings")return pageSettings(c);
+ if(currentPage==="mycode")return pageMyCode(c);
+ if(currentPage==="results")return pageResults(c);
+}
+
+function pageDashboard(c){
+ const title=session.role==="official"?"Official Team Dashboard":session.role==="leader"?`Group Leader — ${groupName(session.groupId)}`:"Participant Area";
+ c.innerHTML=`<div class="card"><h2>${esc(title)}</h2><p class="muted">${session.role==="participant"?"Open access: no code required.": "Your access is active."}</p></div>
+ <div class="grid">
+  <div class="card"><div class="muted">Students</div><div class="stat">${db.students.length}</div></div>
+  <div class="card"><div class="muted">Competitions</div><div class="stat">${db.competitions.length}</div></div>
+  <div class="card"><div class="muted">Registrations</div><div class="stat">${db.registrations.length}</div></div>
+  <div class="card"><div class="muted">Groups</div><div class="stat">${db.groups.length}</div></div>
+ </div>
+ <div class="card"><h3>Access rules</h3>
+ <p>🔐 Official Team: code required + can change official code.</p>
+ <p>🔐 Group Leaders: separate code for every group + each group can change its own code.</p>
+ <p>🔓 Participants: no code, no Student ID, no password.</p></div>`;
+}
+function groupName(id){return db.groups.find(g=>g.id===id)?.name||"Group"}
+
+function pageStudents(c){
+ const canEdit=session.role!=="participant";
+ const rows=db.students.filter(s=>session.role!=="leader"||s.groupId===session.groupId);
+ c.innerHTML=`<div class="card"><h2>Students</h2>${canEdit?`
+ <form onsubmit="addStudent(event)">
+ <div class="grid"><div><label>Name</label><input id="stName" required></div>
+ <div><label>Group</label><select id="stGroup">${db.groups.map(g=>`<option value="${esc(g.id)}">${esc(g.name)}</option>`).join("")}</select></div></div>
+ <button>Add Student</button></form>`:""}
+ </div>
+ <div class="card"><div class="table-wrap"><table class="table"><tr><th>Name</th><th>Group</th>${canEdit?"<th>Action</th>":""}</tr>
+ ${rows.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(groupName(s.groupId))}</td>${canEdit?`<td><button class="red" onclick="deleteStudent('${s.id}')">Delete</button></td>`:""}</tr>`).join("")||"<tr><td colspan='3'>No students yet.</td></tr>"}
+ </table></div></div>`;
+}
+function addStudent(e){e.preventDefault();db.students.push({id:uid(),name:$("stName").value.trim(),groupId:$("stGroup").value});save();toast("Student added");renderPage()}
+function deleteStudent(id){if(!confirm("Delete this student?"))return;db.students=db.students.filter(x=>x.id!==id);save();renderPage()}
+
+function pageCompetitions(c){
+ const canEdit=session.role==="official";
+ c.innerHTML=`<div class="card"><h2>Competitions</h2>${canEdit?`
+ <form onsubmit="addCompetition(event)">
+ <div class="grid"><div><label>Competition Name</label><input id="coName" required></div>
+ <div><label>Category</label><input id="coCat" placeholder="Senior / Junior"></div></div>
+ <button>Add Competition</button></form>`:""}
+ <div class="table-wrap"><table class="table"><tr><th>Competition</th><th>Category</th>${canEdit?"<th>Action</th>":""}</tr>
+ ${db.competitions.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.category)}</td>${canEdit?`<td><button class="red" onclick="deleteCompetition('${x.id}')">Delete</button></td>`:""}</tr>`).join("")||"<tr><td colspan='3'>No competitions yet.</td></tr>"}
+ </table></div></div>`;
+}
+function addCompetition(e){e.preventDefault();db.competitions.push({id:uid(),name:$("coName").value.trim(),category:$("coCat").value.trim()});save();toast("Competition added");renderPage()}
+function deleteCompetition(id){db.competitions=db.competitions.filter(x=>x.id!==id);save();renderPage()}
+
+function pageRegistrations(c){
+ const allowed=session.role!=="participant";
+ const list=db.registrations.filter(r=>session.role!=="leader"||r.groupId===session.groupId);
+ c.innerHTML=`<div class="card"><h2>Registrations</h2>${allowed?`
+ <form onsubmit="addRegistration(event)">
+ <div class="grid"><div><label>Student</label><select id="regStudent">${db.students.filter(s=>session.role!=="leader"||s.groupId===session.groupId).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div>
+ <div><label>Competition</label><select id="regComp">${db.competitions.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</select></div></div>
+ <button>Add Registration</button></form>`:"<p class='muted'>Participants can view published information only.</p>"}
+ <div class="table-wrap"><table class="table"><tr><th>Student</th><th>Competition</th><th>Group</th>${allowed?"<th>Action</th>":""}</tr>
+ ${list.map(r=>{let s=db.students.find(x=>x.id===r.studentId),co=db.competitions.find(x=>x.id===r.competitionId);return `<tr><td>${esc(s?.name||"-")}</td><td>${esc(co?.name||"-")}</td><td>${esc(groupName(r.groupId))}</td>${allowed?`<td><button class="red" onclick="deleteRegistration('${r.id}')">Delete</button></td>`:""}</tr>`}).join("")||"<tr><td colspan='4'>No registrations yet.</td></tr>"}
+ </table></div></div>`;
+}
+function addRegistration(e){e.preventDefault();let s=db.students.find(x=>x.id===$("regStudent").value),co=$("regComp").value;if(!s||!co)return;db.registrations.push({id:uid(),studentId:s.id,competitionId:co,groupId:s.groupId});save();toast("Registration added");renderPage()}
+function deleteRegistration(id){db.registrations=db.registrations.filter(x=>x.id!==id);save();renderPage()}
+
+function pageMarks(c){
+ const canEdit=session.role!=="participant";
+ const regs=db.registrations.filter(r=>session.role!=="leader"||r.groupId===session.groupId);
+ c.innerHTML=`<div class="card"><h2>Marks / Results</h2>${canEdit?`
+ <form onsubmit="saveMark(event)">
+ <div class="grid"><div><label>Registration</label><select id="markReg">${regs.map(r=>{let s=db.students.find(x=>x.id===r.studentId),co=db.competitions.find(x=>x.id===r.competitionId);return `<option value="${r.id}">${esc(s?.name||"-")} — ${esc(co?.name||"-")}</option>`}).join("")}</select></div>
+ <div><label>Mark</label><input id="markValue" type="number" min="0" max="100" inputmode="decimal" required></div></div>
+ <button>Save Mark</button></form>`:""}
+ <div class="table-wrap"><table class="table"><tr><th>Student</th><th>Competition</th><th>Group</th><th>Mark</th><th>Place</th></tr>
+ ${db.marks.filter(m=>session.role!=="leader"||m.groupId===session.groupId).map(m=>{let s=db.students.find(x=>x.id===m.studentId),co=db.competitions.find(x=>x.id===m.competitionId);return `<tr><td>${esc(s?.name||"-")}</td><td>${esc(co?.name||"-")}</td><td>${esc(groupName(m.groupId))}</td><td>${esc(m.mark)}</td><td>${esc(m.place||"-")}</td></tr>`}).join("")||"<tr><td colspan='5'>No marks yet.</td></tr>"}
+ </table></div></div>`;
+}
+function saveMark(e){e.preventDefault();let r=db.registrations.find(x=>x.id===$("markReg").value);if(!r)return;let m=db.marks.find(x=>x.registrationId===r.id);if(m)m.mark=Number($("markValue").value);else db.marks.push({id:uid(),registrationId:r.id,studentId:r.studentId,competitionId:r.competitionId,groupId:r.groupId,mark:Number($("markValue").value),place:""});calculatePlaces();save();toast("Mark saved");renderPage()}
+function calculatePlaces(){
+ const by={};
+ db.marks.forEach(m=>{const k=m.competitionId;(by[k]??=[]).push(m)});
+ Object.values(by).forEach(a=>{a.sort((x,y)=>y.mark-x.mark);a.forEach((m,i)=>m.place=i+1)});
+}
+
+function pageGroups(c){
+ if(session.role!=="official"){c.innerHTML="<div class='card'><h2>Groups & Codes</h2><p>Only the Official Team can add groups or manage other groups.</p></div>";return}
+ c.innerHTML=`<div class="card"><h2>Groups & Codes</h2>
+ <form onsubmit="addGroup(event)"><div class="grid"><div><label>New Group Name</label><input id="newGroupName" placeholder="Group 3" required></div><div><label>New Group Code</label><input id="newGroupCode" class="code-input" type="password" inputmode="numeric" placeholder="e.g. 1234567" required></div></div><button>Add Group + Code</button></form>
+ <div class="table-wrap"><table class="table"><tr><th>Group</th><th>Current Code</th><th>Change Code</th><th>Action</th></tr>
+ ${db.groups.map(g=>`<tr><td>${esc(g.name)}</td><td><span class="pill">Hidden</span></td><td><input id="gc_${g.id}" class="code-input" type="password" inputmode="numeric" placeholder="New code"><button onclick="changeGroupCode('${g.id}')">Change</button></td><td><button class="red" onclick="deleteGroup('${g.id}')">Delete</button></td></tr>`).join("")}</table></div></div>`;
+}
+function addGroup(e){e.preventDefault();let n=$("newGroupName").value.trim(),p=$("newGroupCode").value.trim();if(!n||!p)return;db.groups.push({id:uid(),name:n,password:p});save();toast("Group added with its own code");renderPage()}
+function changeGroupCode(id){let p=$("gc_"+id).value.trim();if(!p){toast("Enter a new code");return}let g=db.groups.find(x=>x.id===id);g.password=p;save();toast("Group code changed")}
+function deleteGroup(id){if(db.groups.length<=1){toast("Keep at least one group");return}if(!confirm("Delete this group?"))return;db.groups=db.groups.filter(x=>x.id!==id);db.students=db.students.filter(s=>s.groupId!==id);db.registrations=db.registrations.filter(r=>r.groupId!==id);db.marks=db.marks.filter(m=>m.groupId!==id);save();renderPage()}
+
+function pageMyCode(c){
+ const g=db.groups.find(x=>x.id===session.groupId);
+ c.innerHTML=`<div class="card"><h2>My Group Code</h2><p><b>${esc(g?.name||"Group")}</b></p>
+ <form onsubmit="changeMyCode(event)"><label>New Group Code</label><input id="myNewCode" class="code-input" type="password" inputmode="numeric" placeholder="Enter new code" required><button>Change My Group Code</button></form>
+ <div class="info">This changes only your group's code. Other groups' codes are not affected.</div></div>`;
+}
+function changeMyCode(e){e.preventDefault();let p=$("myNewCode").value.trim();if(!p)return;let g=db.groups.find(x=>x.id===session.groupId);g.password=p;save();toast("Your group
